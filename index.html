@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Folder Structure</title>
+    <style>
+      ul {
+        list-style-type: none;
+        padding-left: 20px;
+      }
+
+      .folder {
+        margin-bottom: 10px;
+        position: relative;
+      }
+
+      .file {
+        color: #666;
+        cursor: pointer;
+      }
+
+      .collapsible {
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .content {
+        display: none;
+      }
+
+      .context-menu {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 100%;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        padding: 5px;
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="folderStructure"></div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const jsonData = [
+          { type: 'file', name: 'index.html' },
+          { type: 'file', name: 'script.html' },
+          {
+            type: 'folder',
+            name: 'src',
+            content: [
+              { type: 'file', name: 'componenet.tsx' },
+              { type: 'file', name: 'icons.tsx' },
+              {
+                type: 'folder',
+                name: 'images',
+                content: [
+                  { type: 'file', name: 'view.jpg' },
+                  { type: 'file', name: 'test.jpg' },
+                ],
+              },
+            ],
+          },
+          {
+            type: 'folder',
+            name: 'new',
+            content: [{ type: 'file', name: 'test.jpg' }],
+          },
+        ];
+
+        const folderStructureContainer =
+          document.getElementById('folderStructure');
+        folderStructureContainer.appendChild(createFolderStructure(jsonData));
+
+        function createFolderStructure(data, parentFolder = 'root') {
+          const ul = document.createElement('ul');
+
+          data.forEach((item) => {
+            const li = document.createElement('li');
+
+            if (item.type === 'folder') {
+              li.innerHTML = `<span class="collapsible">${item.name}</span>`;
+              li.classList.add('folder');
+              const content = createFolderStructure(item.content, item.name);
+              content.classList.add('content');
+              li.appendChild(content);
+
+              // Add right-click menu for folders
+              li.addEventListener('contextmenu', function (event) {
+                event.preventDefault();
+                showContextMenu(event, item.name, true, li);
+              });
+            } else {
+              li.textContent = item.name;
+              li.classList.add('file');
+              li.addEventListener('click', function () {
+                console.log('Folder:', parentFolder, 'File:', item.name);
+              });
+            }
+
+            ul.appendChild(li);
+          });
+
+          return ul;
+        }
+
+        // Add collapsible behavior
+        const collapsibles = document.querySelectorAll('.collapsible');
+        collapsibles.forEach((collapsible) => {
+          collapsible.addEventListener('click', function () {
+            this.classList.toggle('active');
+            const content = this.nextElementSibling;
+            if (content.style.display === 'block') {
+              content.style.display = 'none';
+            } else {
+              content.style.display = 'block';
+            }
+          });
+        });
+
+        function showContextMenu(event, folderName, isFolder, targetElement) {
+          const contextMenu = document.createElement('div');
+          contextMenu.classList.add('context-menu');
+          const addFileBtn = document.createElement('button');
+
+          if (isFolder) {
+            addFileBtn.innerHTML = 'Add File';
+            contextMenu.appendChild(addFileBtn);
+          }
+
+          const addFolderBtn = document.createElement('button');
+          addFolderBtn.innerHTML = 'Add Folder';
+          contextMenu.appendChild(addFolderBtn);
+
+          contextMenu.style.display = 'block';
+
+          contextMenu.style.top = `${event.clientY}px`;
+          contextMenu.style.left = `${event.clientX}px`;
+
+          document.body.appendChild(contextMenu);
+
+          document.addEventListener('click', function () {
+            contextMenu.remove();
+          });
+
+          addFileBtn &&
+            addFileBtn.addEventListener('click', function () {
+              const fileName = prompt('Enter file name:');
+              if (fileName) {
+                // You can add logic to handle the new file
+                console.log(`Adding ${fileName} to folder: ${folderName}`);
+
+                // Update the DOM
+                const newFileLi = document.createElement('li');
+                newFileLi.textContent = fileName;
+                newFileLi.classList.add('file');
+                targetElement.querySelector('.content').appendChild(newFileLi);
+              }
+              contextMenu.remove();
+            });
+
+          addFolderBtn.addEventListener('click', function () {
+            const newFolderName = prompt('Enter folder name:');
+            if (newFolderName) {
+              // You can add logic to handle the new folder
+              console.log(`Adding folder: ${newFolderName}`);
+
+              // Update the DOM
+              const newFolderLi = document.createElement('li');
+              newFolderLi.innerHTML = `<span class="collapsible">${newFolderName}</span>`;
+              newFolderLi.classList.add('folder');
+              newFolderLi.appendChild(document.createElement('ul'));
+              targetElement.querySelector('.content').appendChild(newFolderLi);
+            }
+            contextMenu.remove();
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
